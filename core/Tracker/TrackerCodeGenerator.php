@@ -313,7 +313,8 @@ class TrackerCodeGenerator
         }
         $options = '';
         if ($mergeSubdomains && !empty($firstHost)) {
-            $options .= '  _paq.push(["setCookieDomain", "*.' . $firstHost . '"]);' . "\n";
+            $cleanHost = preg_replace('~^www\.(.+)$~', '$1', $firstHost);
+            $options .= '  _paq.push(["setCookieDomain", "*.' . $cleanHost . '"]);' . "\n";
         }
         if ($mergeAliasUrls && !empty($websiteHosts)) {
             $urls = '["*.' . implode('","*.', $websiteHosts) . '"]';

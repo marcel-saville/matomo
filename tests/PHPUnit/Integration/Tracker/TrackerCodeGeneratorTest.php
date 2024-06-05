@@ -350,6 +350,40 @@ class TrackerCodeGeneratorTest extends IntegrationTestCase
         $this->assertEquals($expected, $jsTag);
     }
 
+    public function testWwwDomainHandledInCookieDomain()
+    {
+        $generator = new TrackerCodeGenerator();
+
+        $urls = array(
+          'http://www.localhost/piwik', // Domain containing the 'www' prefix must be the first host
+          'http://localhost/piwik',
+        );
+
+        $idSite = \Piwik\Plugins\SitesManager\API::getInstance()->addSite('Site name here <-->', $urls);
+
+        $jsTag = $generator->generate($idSite, 'http://piwik-server/piwik', $mergeSubdomains = true, $disableCookies = false);
+
+        $expected = '&lt;!-- Matomo --&gt;
+&lt;script&gt;
+  var _paq = window._paq = window._paq || [];
+  /* tracker methods like &quot;setCustomDimension&quot; should be called before &quot;trackPageView&quot; */
+  _paq.push(["setCookieDomain", "*.localhost"]);
+  _paq.push([\'trackPageView\']);
+  _paq.push([\'enableLinkTracking\']);
+  (function() {
+    var u=&quot;//piwik-server/piwik/&quot;;
+    _paq.push([\'setTrackerUrl\', u+\'matomo.php\']);
+    _paq.push([\'setSiteId\', \'1\']);
+    var d=document, g=d.createElement(\'script\'), s=d.getElementsByTagName(\'script\')[0];
+    g.async=true; g.src=u+\'matomo.js\'; s.parentNode.insertBefore(g,s);
+  })();
+&lt;/script&gt;
+&lt;!-- End Matomo Code --&gt;
+';
+
+        $this->assertEquals($expected, $jsTag);
+    }
+
     private function hasCustomVariables()
     {
         return Manager::getInstance()->isPluginActivated('CustomVariables');
